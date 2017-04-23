@@ -10,6 +10,7 @@
 // ==/UserScript==
 
 const storageKey = 'mitbbs.blocklist'
+const isArticlePage = window.location.href.indexOf('article') > -1
 
 function getBlocklist () {
   let blockList = localStorage.getItem(storageKey)
@@ -122,13 +123,13 @@ function changeReplyVisibility () {
   })
 }
 
-//  TODO: use isArticlePage to conditionally run toggleBlockedContent
-//  TODO: fix bug, content not showing up when id is removed from the blocklistPop
-
 function toggleBlockedContent () {
   document.getElementById('isBlocking').checked ? setBlockFlag(1) : setBlockFlag(0)
-  changePostVisibility()
-  changeReplyVisibility()
+  if (isArticlePage) {
+    changeReplyVisibility()
+  } else {
+    changePostVisibility()
+  }
 }
 
 function changeBlockListVisibility () {
@@ -164,8 +165,6 @@ function prepPage () {
 }
 
 function pageOnLoad () {
-  let baseUrl = window.location.href
-  let isArticlePage = baseUrl.indexOf('article') > -1
   //  build blocker control gui
   let blockerDiv = document.createElement('div')
   blockerDiv.innerHTML = '<button id="showBlocklist">黑名单</button><input type="checkbox" id="isBlocking" /><span id="blockCounter" title="Currently Blocked"></span>'
