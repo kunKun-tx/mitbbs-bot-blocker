@@ -53,6 +53,11 @@ function changePostVisibility () {
     userIDtdNodeList.forEach(td => {
       // damn, now i miss jquery/zepto
       let id = td.querySelector('a.news') ? td.querySelector('a.news').innerHTML : null
+
+      //  reset all reply to visible. This is a hack-ish method to fix content not being displayed after userID has been removed from blocklist.
+      //  TODO: maybe in the near future, we should keep a local copy of blocklist so that we can compare the changes and show/hide content intelligently, maybe
+      td.parentNode.style.display = ''
+
       //  yeah, nested if statements
       if (blockList.indexOf(id) > -1) {
         if (flag) {
@@ -86,6 +91,10 @@ function changeReplyVisibility () {
       blockButton.innerHTML = '&nbsp;&nbsp;<button class="addToBlock" title="' + userID + '">屏蔽！</button>'
       userMenu.appendChild(blockButton)
     }
+    //  reset all reply to visible. This is a hack-ish method to fix content not being displayed after userID has been removed from blocklist.
+    //  TODO: maybe in the near future, we should keep a local copy of blocklist so that we can compare the changes and show/hide content intelligently, maybe
+    post.style.display = ''
+
     if (blockList.indexOf(userID) > -1) {
       if (flag) {
         post.style.display = 'none'
