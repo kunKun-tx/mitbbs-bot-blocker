@@ -96,6 +96,13 @@ function hideBlockList () {
   document.getElementById('blockListPop').style.display = 'none'
 }
 
+function prepPage () {
+  if (getBlockFlag()) {
+    document.getElementById('isBlocking').checked = true
+    toggleBlockedContent()
+  }
+}
+
 function pageOnLoad () {
   let baseUrl = window.location.href
   let isArticlePage = baseUrl.indexOf('article') > -1
@@ -122,6 +129,8 @@ function pageOnLoad () {
 
   document.getElementById('updateBlockList').addEventListener('click', updateBlockList)
   document.getElementById('closePop').addEventListener('click', hideBlockList)
+
+  prepPage()
 }
 
 pageOnLoad()
