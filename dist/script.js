@@ -1,27 +1,51 @@
 // ==UserScript==
 // @name         Mitbbs-bot-blocker
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  Manages and blocks bot generated content
 // @author       术版小吃
 // @match        http://www.mitbbs.com/*
 // @match        https://www.mitbbs.com/*
 // @grant        GM_addStyle
+// @run-at       document-idle
 // ==/UserScript==
 //debugger;
 (function() {
   'use strict';
 
   var storageKey = 'mitbbs.blocklist';
-  var isArticlePage = window.location.href.indexOf('article') > -1;
+  var pageType = locationGuesser();
+
+  function locationGuesser() {
+    var pageType = void 0;
+    var url = window.location.href;
+    if (url.indexOf('article') > -1) {
+      pageType = 1;
+    } else if (url.indexOf('bbsdoc') > -1) {
+      pageType = -1;
+    } else {
+      pageType = 0;
+    }
+
+    return pageType;
+  }
 
   function getBlocklist() {
     var blockList = localStorage.getItem(storageKey);
     if (blockList === null) {
-      setBlocklist(['']);
+      setBlocklist([]);
       blockList = localStorage.getItem(storageKey);
     }
-    return JSON.parse(blockList);
+
+    try {
+      blockList = JSON.parse(blockList);
+    } catch (error) {
+      blockList = [];
+      setBlocklist(blockList);
+    }
+
+    blockList = Array.isArray(blockList) ? blockList : [];
+    return blockList;
   }
 
   function setBlocklist(idNameList) {
@@ -132,10 +156,13 @@
 
   function toggleBlockedContent() {
     document.getElementById('isBlocking').checked ? setBlockFlag(1) : setBlockFlag(0);
-    if (isArticlePage) {
-      changeReplyVisibility();
-    } else {
-      changePostVisibility();
+    switch (pageType) {
+      case 1:
+        changeReplyVisibility();
+        break;
+      case -1:
+        changePostVisibility();
+        break;
     }
   }
 
@@ -165,7 +192,9 @@
   }
 
   function prepPage() {
-    if (getBlockFlag()) {
+    var flag = getBlockFlag();
+    getBlocklist();
+    if (flag) {
       document.getElementById('isBlocking').checked = true;
       toggleBlockedContent();
     }
@@ -195,5 +224,13 @@
     prepPage();
   }
 
-  pageOnLoad();
+  function ready(fn) {
+    if (document.readyState !== 'loading') {
+      fn();
+    } else {
+      document.addEventListener('DOMContentLoaded', fn);
+    }
+  }
+
+  ready(pageOnLoad);
 })();
