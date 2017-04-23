@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mitbbs-bot-blocker
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.5
 // @description  Manages and blocks bot generated content. Inspired by Smalltalk80's original GM script, http://userscripts-mirror.org/scripts/review/78633
 // @author       术版小吃
 // @match        http://www.mitbbs.com/*
