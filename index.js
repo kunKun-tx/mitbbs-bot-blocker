@@ -53,7 +53,7 @@ function changePostVisibility () {
     let userIDtdNodeList = taolunDiv.querySelectorAll('td:nth-child(5)')
     userIDtdNodeList.forEach(td => {
       // damn, now i miss jquery/zepto
-      let id = td.querySelector('a.news') ? td.querySelector('a.news').innerHTML : null
+      let id = td.querySelector('a.news') ? td.querySelector('a.news').innerHTML.replace(/\s/g, '') : null
 
       //  reset all reply to visible. This is a hack-ish method to fix content not being displayed after userID has been removed from blocklist.
       //  TODO: maybe in the near future, we should keep a local copy of blocklist so that we can compare the changes and show/hide content intelligently, maybe
@@ -84,7 +84,7 @@ function changeReplyVisibility () {
     let post = reply.parentElement.parentElement.parentElement.parentElement.parentElement
     //  another magic number!
     let userMenu = post.querySelector('td.jiahui-4 td[width="83%"]')
-    let userID = post.querySelector('td.wenzhang strong a').innerHTML
+    let userID = post.querySelector('td.wenzhang strong a').innerHTML.replace(/\s/g, '')
     let hasButton = userMenu.lastChild.innerHTML !== undefined
     if (!hasButton) {
       let blockButton = document.createElement('span')
