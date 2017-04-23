@@ -96,6 +96,8 @@ function hideBlockList () {
 }
 
 function pageOnLoad () {
+  let baseUrl = window.location.href
+  let isArticlePage = baseUrl.indexOf('article') > -1
   //  build blocker control gui
   let blockerDiv = document.createElement('div')
   blockerDiv.innerHTML = '<button id="showBlocklist">黑名单</button><input type="checkbox" id="isBlocking" /><span id="blockCounter" title="Currently Blocked"></span>'
