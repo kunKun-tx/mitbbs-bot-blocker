@@ -21,6 +21,8 @@ function getBlocklist () {
 }
 
 function setBlocklist (idNameList) {
+  // remove duplicate items
+  idNameList = [...new Set(idNameList)]
   localStorage.setItem(storageKey, JSON.stringify(idNameList))
 }
 
