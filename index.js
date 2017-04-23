@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mitbbs-bot-blocker
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Manages and blocks bot generated content. Inspired by Smalltalk80's original GM script, http://userscripts-mirror.org/scripts/review/78633
 // @author       术版小吃
 // @match        http://www.mitbbs.com/*
@@ -50,7 +50,7 @@ function changePostVisibility () {
     // yeah yeah yeah magic number, whatever
     // this will miss the first one though, nice try langfang coder
     let userIDtdNodeList = taolunDiv.querySelectorAll('td:nth-child(5)')
-    userIDtdNodeList.forEach(function (td) {
+    userIDtdNodeList.forEach(td => {
       // damn, now i miss jquery/zepto
       let id = td.querySelector('a.news') ? td.querySelector('a.news').innerHTML : null
       //  yeah, nested if statements
@@ -68,9 +68,58 @@ function changePostVisibility () {
   }
 }
 
+function changeReplyVisibility () {
+  //  now we on individual post page
+  let blockList = getBlocklist()
+  let flag = getBlockFlag()
+  let counter = 0
+  let sideBarBG = document.querySelectorAll('td.wenzhang_bg')
+  sideBarBG.forEach(reply => {
+    let post = reply.parentElement.parentElement.parentElement.parentElement.parentElement
+    //  another magic number!
+    let userMenu = post.querySelector('td.jiahui-4 td[width="83%"]')
+    let userID = post.querySelector('td.wenzhang strong a').innerHTML
+    let hasButton = userMenu.lastChild.innerHTML !== undefined
+    if (!hasButton) {
+      let blockButton = document.createElement('span')
+      blockButton.setAttribute('class', 'buttonHolder')
+      blockButton.innerHTML = '&nbsp;&nbsp;<button class="addToBlock" title="' + userID + '">屏蔽！</button>'
+      userMenu.appendChild(blockButton)
+    }
+    if (blockList.indexOf(userID) > -1) {
+      if (flag) {
+        post.style.display = 'none'
+        counter += 1
+      } else {
+        post.style.display = ''
+      }
+    }
+    counter = flag ? counter : 0
+    document.getElementById('blockCounter').innerHTML = counter
+  })
+
+  let allBlockButton = document.querySelectorAll('.addToBlock')
+  Array.from(allBlockButton).forEach(button => {
+    let userID = button.getAttribute('title')
+    button.addEventListener('click', () => {
+      let yesBlock = confirm('Block ' + userID + ' ?')
+      if (yesBlock) {
+        blockList.push(userID)
+        setBlocklist(blockList)
+        document.getElementById('blockListInput').value = getBlocklist().join()
+        toggleBlockedContent()
+      }
+    })
+  })
+}
+
+//  TODO: use isArticlePage to conditionally run toggleBlockedContent
+//  TODO: fix bug, content not showing up when id is removed from the blocklistPop
+
 function toggleBlockedContent () {
   document.getElementById('isBlocking').checked ? setBlockFlag(1) : setBlockFlag(0)
   changePostVisibility()
+  changeReplyVisibility()
 }
 
 function changeBlockListVisibility () {
