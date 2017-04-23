@@ -38,7 +38,7 @@ function setBlockFlag (flag) {
   localStorage.setItem(storageKey + '.flag', flag)
 }
 
-function ChangePostVisibility () {
+function changePostVisibility () {
   let blockList = getBlocklist()
   let flag = getBlockFlag()
   // if list is not empty
@@ -68,7 +68,7 @@ function ChangePostVisibility () {
 
 function toggleBlockedContent () {
   document.getElementById('isBlocking').checked ? setBlockFlag(1) : setBlockFlag(0)
-  ChangePostVisibility()
+  changePostVisibility()
 }
 
 function changeBlockListVisibility () {
