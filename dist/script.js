@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         Mitbbs-bot-blocker
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.5
 // @description  Manages and blocks bot generated content
 // @author       术版小吃
 // @match        http://www.mitbbs.com/*
+// @match        https://www.mitbbs.com/*
 // @grant        GM_addStyle
 // ==/UserScript==
 //debugger;
@@ -12,18 +13,25 @@
   'use strict';
 
   var storageKey = 'mitbbs.blocklist';
+  var isArticlePage = window.location.href.indexOf('article') > -1;
 
   function getBlocklist() {
     var blockList = localStorage.getItem(storageKey);
     if (blockList === null) {
-      setBlocklist([]);
+      setBlocklist(['']);
       blockList = localStorage.getItem(storageKey);
     }
     return JSON.parse(blockList);
   }
 
   function setBlocklist(idNameList) {
-    localStorage.setItem(storageKey, JSON.stringify(idNameList));
+    // remove duplicate items
+    // todo: babel output for this one doesn't really work, have to revert back to old fashion way
+    // idNameList = [...new Set(idNameList)]
+    var uniqueidNameList = idNameList.filter(function (elem, index, self) {
+      return index === self.indexOf(elem);
+    });
+    localStorage.setItem(storageKey, JSON.stringify(uniqueidNameList));
   }
 
   function getBlockFlag() {
@@ -40,7 +48,7 @@
     localStorage.setItem(storageKey + '.flag', flag);
   }
 
-  function ChangePostVisibility() {
+  function changePostVisibility() {
     var blockList = getBlocklist();
     var flag = getBlockFlag();
     // if list is not empty
@@ -52,7 +60,12 @@
       var userIDtdNodeList = taolunDiv.querySelectorAll('td:nth-child(5)');
       userIDtdNodeList.forEach(function (td) {
         // damn, now i miss jquery/zepto
-        var id = td.querySelector('a.news') ? td.querySelector('a.news').innerHTML : null;
+        var id = td.querySelector('a.news') ? td.querySelector('a.news').innerHTML.replace(/\s/g, '') : null;
+
+        //  reset all reply to visible. This is a hack-ish method to fix content not being displayed after userID has been removed from blocklist.
+        //  TODO: maybe in the near future, we should keep a local copy of blocklist so that we can compare the changes and show/hide content intelligently, maybe
+        td.parentNode.style.display = '';
+
         //  yeah, nested if statements
         if (blockList.indexOf(id) > -1) {
           if (flag) {
@@ -68,9 +81,62 @@
     }
   }
 
+  function changeReplyVisibility() {
+    //  now we on individual post page
+    var blockList = getBlocklist();
+    var flag = getBlockFlag();
+    var counter = 0;
+    var sideBarBG = document.querySelectorAll('td.wenzhang_bg');
+    sideBarBG.forEach(function (reply) {
+      var post = reply.parentElement.parentElement.parentElement.parentElement.parentElement;
+      //  another magic number!
+      var userMenu = post.querySelector('td.jiahui-4 td[width="83%"]');
+      var userID = post.querySelector('td.wenzhang strong a').innerHTML.replace(/\s/g, '');
+      var hasButton = userMenu.lastChild.innerHTML !== undefined;
+      if (!hasButton) {
+        var blockButton = document.createElement('span');
+        blockButton.setAttribute('class', 'buttonHolder');
+        blockButton.innerHTML = '&nbsp;&nbsp;<button class="addToBlock" title="' + userID + '">屏蔽！</button>';
+        userMenu.appendChild(blockButton);
+      }
+      //  reset all reply to visible. This is a hack-ish method to fix content not being displayed after userID has been removed from blocklist.
+      //  TODO: maybe in the near future, we should keep a local copy of blocklist so that we can compare the changes and show/hide content intelligently, maybe
+      post.style.display = '';
+
+      if (blockList.indexOf(userID) > -1) {
+        if (flag) {
+          post.style.display = 'none';
+          counter += 1;
+        } else {
+          post.style.display = '';
+        }
+      }
+      counter = flag ? counter : 0;
+      document.getElementById('blockCounter').innerHTML = counter;
+    });
+
+    var allBlockButton = document.querySelectorAll('.addToBlock');
+    Array.from(allBlockButton).forEach(function (button) {
+      var userID = button.getAttribute('title');
+      button.addEventListener('click', function () {
+        var yesBlock = confirm('Block ' + userID + ' ?');
+        if (yesBlock) {
+          blockList.push(userID);
+          setBlocklist(blockList);
+          document.getElementById('blockListInput').value = getBlocklist().join();
+          toggleBlockedContent();
+        }
+      });
+    });
+  }
+
   function toggleBlockedContent() {
     document.getElementById('isBlocking').checked ? setBlockFlag(1) : setBlockFlag(0);
-    ChangePostVisibility();
+    if (isArticlePage) {
+      changeReplyVisibility();
+    } else {
+      changePostVisibility();
+    }
   }
 
   function changeBlockListVisibility() {
@@ -98,6 +164,13 @@
     document.getElementById('blockListPop').style.display = 'none';
   }
 
+  function prepPage() {
+    if (getBlockFlag()) {
+      document.getElementById('isBlocking').checked = true;
+      toggleBlockedContent();
+    }
+  }
+
   function pageOnLoad() {
     //  build blocker control gui
     var blockerDiv = document.createElement('div');
@@ -118,6 +191,8 @@
 
     document.getElementById('updateBlockList').addEventListener('click', updateBlockList);
     document.getElementById('closePop').addEventListener('click', hideBlockList);
+
+    prepPage();
   }
 
   pageOnLoad();

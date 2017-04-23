@@ -15,7 +15,7 @@ const isArticlePage = window.location.href.indexOf('article') > -1
 function getBlocklist () {
   let blockList = localStorage.getItem(storageKey)
   if (blockList === null) {
-    setBlocklist([])
+    setBlocklist([''])
     blockList = localStorage.getItem(storageKey)
   }
   return JSON.parse(blockList)
@@ -23,8 +23,12 @@ function getBlocklist () {
 
 function setBlocklist (idNameList) {
   // remove duplicate items
-  idNameList = [...new Set(idNameList)]
-  localStorage.setItem(storageKey, JSON.stringify(idNameList))
+  // todo: babel output for this one doesn't really work, have to revert back to old fashion way
+  // idNameList = [...new Set(idNameList)]
+  let uniqueidNameList = idNameList.filter((elem, index, self) => {
+    return index === self.indexOf(elem)
+  })
+  localStorage.setItem(storageKey, JSON.stringify(uniqueidNameList))
 }
 
 function getBlockFlag () {
