@@ -7,10 +7,25 @@
 // @match        http://www.mitbbs.com/*
 // @match        https://www.mitbbs.com/*
 // @grant        GM_addStyle
+// @run-at       document-idle
 // ==/UserScript==
 
 const storageKey = 'mitbbs.blocklist'
-const isArticlePage = window.location.href.indexOf('article') > -1
+let pageType = locationGuesser()
+
+function locationGuesser () {
+  let pageType
+  let url = window.location.href
+  if (url.indexOf('article') > -1) {
+    pageType = 1
+  } else if (url.indexOf('bbsdoc') > -1) {
+    pageType = -1
+  } else {
+    pageType = 0
+  }
+
+  return pageType
+}
 
 function getBlocklist () {
   let blockList = localStorage.getItem(storageKey)
@@ -138,10 +153,13 @@ function changeReplyVisibility () {
 
 function toggleBlockedContent () {
   document.getElementById('isBlocking').checked ? setBlockFlag(1) : setBlockFlag(0)
-  if (isArticlePage) {
-    changeReplyVisibility()
-  } else {
-    changePostVisibility()
+  switch (pageType) {
+    case 1:
+      changeReplyVisibility()
+      break
+    case -1:
+      changePostVisibility()
+      break
   }
 }
 
@@ -207,4 +225,12 @@ function pageOnLoad () {
   prepPage()
 }
 
-pageOnLoad()
+function ready (fn) {
+  if (document.readyState !== 'loading') {
+    fn()
+  } else {
+    document.addEventListener('DOMContentLoaded', fn)
+  }
+}
+
+ready(pageOnLoad())
