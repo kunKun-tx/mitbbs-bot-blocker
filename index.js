@@ -15,10 +15,19 @@ const isArticlePage = window.location.href.indexOf('article') > -1
 function getBlocklist () {
   let blockList = localStorage.getItem(storageKey)
   if (blockList === null) {
-    setBlocklist([''])
+    setBlocklist([])
     blockList = localStorage.getItem(storageKey)
   }
-  return JSON.parse(blockList)
+
+  try {
+    blockList = JSON.parse(blockList)
+  } catch (error) {
+    blockList = []
+    setBlocklist(blockList)
+  }
+
+  blockList = Array.isArray(blockList) ? blockList : []
+  return blockList
 }
 
 function setBlocklist (idNameList) {
@@ -32,7 +41,7 @@ function setBlocklist (idNameList) {
 }
 
 function getBlockFlag () {
-  let blockFlag = localStorage.getItem(storageKey + '.flag')
+  let blockFlag = (localStorage.getItem(storageKey + '.flag'))
   if (blockFlag === null) {
     setBlockFlag(0)
     blockFlag = localStorage.getItem(storageKey + '.flag')
@@ -162,7 +171,9 @@ function hideBlockList () {
 }
 
 function prepPage () {
-  if (getBlockFlag()) {
+  let flag = getBlockFlag()
+  getBlocklist()
+  if (flag) {
     document.getElementById('isBlocking').checked = true
     toggleBlockedContent()
   }
