@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Mitbbs-bot-blocker
 // @namespace    http://tampermonkey.net/
-// @version      0.6
+// @version      0.8
 // @description  Manages and blocks bot generated content. Inspired by Smalltalk80's original GM script, http://userscripts-mirror.org/scripts/review/78633
 // @author       术版小吃
 // @match        http://www.mitbbs.com/*
@@ -52,7 +52,9 @@ function setBlocklist (idNameList) {
   let uniqueidNameList = idNameList.filter((elem, index, self) => {
     return index === self.indexOf(elem)
   })
+  uniqueidNameList = uniqueidNameList.sort()
   localStorage.setItem(storageKey, JSON.stringify(uniqueidNameList))
+  document.getElementById('blockListInput').value = uniqueidNameList
 }
 
 function getBlockFlag () {
