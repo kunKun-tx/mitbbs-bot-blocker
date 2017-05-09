@@ -52,7 +52,12 @@ function setBlocklist (idNameList) {
   let uniqueidNameList = idNameList.filter((elem, index, self) => {
     return index === self.indexOf(elem)
   })
-  uniqueidNameList = uniqueidNameList.sort()
+  uniqueidNameList = uniqueidNameList.sort((a, b) => {
+    // defer from localeCompare for better browser support
+    if (a.toLowerCase() < b.toLowerCase()) return -1
+    if (a.toLowerCase() > b.toLowerCase()) return 1
+    return 0
+  })
   localStorage.setItem(storageKey, JSON.stringify(uniqueidNameList))
   document.getElementById('blockListInput').value = uniqueidNameList
 }
