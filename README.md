@@ -1,3 +1,5 @@
+**Ust https://newmitbbs.com/viewtopic.php?t=9560 instead**
+
 # mitbbs-bot-blocker
 A Tempermonkey script that manages and hides bot generated content.
 
